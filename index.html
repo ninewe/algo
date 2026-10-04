@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Algo | Hackclub YSWS Draft</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@200..900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #222;
+      font-family: "Inconsolata", monospace;
+      font-optical-sizing: auto;
+      font-style: normal;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/p5.min.js"></script>
+</head>
+<body>
+  <script>
+  let algo;
+
+  function setup() {
+    createCanvas(windowWidth, windowHeight);
+    textFont("Inconsolata");
+    textAlign(CENTER, CENTER);
+    imageMode(CENTER);
+  }
+
+  function preload() {
+    algo = loadImage("image.png");
+  }
+    
+  function wrappedText(value, x, y, maxWidth, lineHeight, align = LEFT) {
+    textAlign(align, TOP);
+
+    let nextY = y;
+
+    for (const paragraph of value.split("\n")) {
+      const words = paragraph.trim().split(/\s+/).filter(Boolean);
+      let line = "";
+
+      for (const word of words) {
+        const testLine = line ? `${line} ${word}` : word;
+
+        if (line && textWidth(testLine) > maxWidth) {
+          text(line, x, nextY);
+          nextY += lineHeight;
+          line = word;
+        } else {
+          line = testLine;
+        }
+      }
+
+      if (line) {
+        text(line, x, nextY);
+        nextY += lineHeight;
+      }
+    }
+
+    return nextY;
+  }
+
+  function drawTimeline(title, items, startY, mobile) {
+    const left = mobile ? 20 : width / 8;
+    const right = mobile ? width - 20 : width - width / 8;
+    const contentWidth = right - left;
+
+    textAlign(LEFT, CENTER);
+    textSize(mobile ? 18 : 18);
+    fill(255);
+    text(title, left, startY);
+
+    if (mobile) {
+      let y = startY + 30;
+      const rowHeight = 43;
+
+      items.forEach((item, index) => {
+        fill(index === 0 ? 255 : 150);
+        textSize(15);
+        textAlign(LEFT, CENTER);
+        text(`week ${index + 1}:`, left, y);
+
+        textAlign(RIGHT, CENTER);
+        text(item.detail, right, y);
+
+        if (item.subdetail) {
+          fill(150);
+          textSize(12);
+          text(item.subdetail, right, y + 16);
+        }
+
+        y += item.subdetail ? rowHeight + 5 : rowHeight;
+      });
+
+      return y + 16;
+    }
+
+    const cellWidth = contentWidth / 6;
+    const barY = startY + 31;
+
+    items.forEach((item, index) => {
+      const x = left + cellWidth * index;
+      const centerX = x + cellWidth / 2;
+
+      noStroke();
+      fill(index === 0 ? 255 : 70);
+      rect(x + 5, barY, cellWidth - 10, 7);
+
+      fill(index === 0 ? 255 : 170);
+      textAlign(CENTER, CENTER);
+      textSize(14);
+      text(`week ${index + 1}:`, centerX, barY + 23);
+
+      textSize(12);
+      text(item.detail, centerX, barY + 43);
+
+      if (item.subdetail) {
+        textSize(11);
+        text(item.subdetail, centerX, barY + 58);
+      }
+    });
+
+    return startY + 100;
+  }
+
+  function drawPrize(title, lines, x, y, maxWidth, mobile, titleColor = 255) {
+    textAlign(LEFT, TOP);
+    textSize(mobile ? 15 : 16);
+    fill(titleColor);
+    text(title, x, y);
+
+    textSize(mobile ? 13 : 14);
+    fill(255);
+
+    return wrappedText(
+      lines.join("\n"),
+      x,
+      y + 25,
+      maxWidth,
+      mobile ? 18 : 19,
+      LEFT
+    ) + 12;
+  }
+
+  function draw() {
+    const mobile = width < 600;
+    const sidePadding = mobile ? 20 : width / 8;
+    const contentWidth = width - sidePadding * 2;
+
+    background(0);
+    noStroke();
+    fill(255);
+
+    let y = 35;
+    
+    textAlign(CENTER, CENTER);
+    textSize(mobile ? 20 : 20);
+    text("6 week YSWS draft", width / 2, y);
+    y += 35;
+
+    if (algo && algo.width) {
+      const imageWidth = Math.min(500, width - (mobile ? 40 : 60));
+      const imageHeight = imageWidth * 0.8;
+
+      image(algo, width / 2, y + imageHeight / 2, imageWidth, imageHeight);
+      y += imageHeight + 20;
+    } else {
+      y += mobile ? 210 : 420;
+    }
+
+    textSize(mobile ? 14 : 20);
+    const introLines = [
+      "Create one bot(software) per week for five weeks.",
+      "Different topic every week; Make these bots fight.",
+      "Get rewards based on how well your bot preformed.",
+      "May the best strategy bot win."
+    ];
+
+    for (const line of introLines) {
+      y = wrappedText(
+        line,
+        width / 2,
+        y,
+        contentWidth,
+        mobile ? 19 : 22,
+        CENTER
+      );
+    }
+
+    y += mobile ? 30 : 150;
+
+    const buildItems = [
+      { detail: "build 1" },
+      { detail: "build 2" },
+      { detail: "build 3" },
+      { detail: "build 4" },
+      { detail: "build 5" },
+      { detail: "watching", subdetail: "& prizes" }
+    ];
+
+    y = drawTimeline("build: (plan)", buildItems, y, mobile);
+
+    y += mobile ? 4 : 70;
+
+    const battleItems = [
+      { detail: "prep" },
+      { detail: "battle", subdetail: "from week 1" },
+      { detail: "battle", subdetail: "from week 2" },
+      { detail: "battle", subdetail: "from week 3" },
+      { detail: "battle", subdetail: "from week 4" },
+      { detail: "battle", subdetail: "from week 5" }
+    ];
+
+    y = drawTimeline("battle: (plan)", battleItems, y, mobile);
+
+    y += mobile ? 4 : 20;
+    textAlign(LEFT, CENTER);
+    textSize(18);
+    fill(255);
+    text("prizes (plan)", sidePadding, y);
+    y += 27;
+
+    textAlign(LEFT, CENTER);
+    textSize(14);
+    text("algos are per eligible hour (max 15 hours)", sidePadding, y);
+    y += 35;
+
+    const prizes = [
+      {
+        title: "week 1 battle:",
+        lines: [
+          "1st place- 350 algos/hr",
+          "2nd place- 330 algos/hr",
+          "3rd place- 320 algos/hr",
+          "4th place- 310 algos/hr",
+          "nth place- 300-2n algos/hr (n>4)",
+          "(least payout is 150 algos/hr)",
+          'count for "the algo": 1hr required'
+        ]
+      },
+      {
+        title: "week 2 battle:",
+        lines: [
+          "1st place- 400 algos/hr",
+          "2nd place- 380 algos/hr",
+          "3rd place- 370 algos/hr",
+          "4th place- 360 algos/hr",
+          "nth place- 350-2n algos/hr (n>4)",
+          "(least payout is 200 algos/hr)",
+          'count for "the algo": 1hr 15min required'
+        ]
+      },
+      {
+        title: "week 3 battle:",
+        lines: [
+          "1st place- 500 algos/hr",
+          "2nd place- 470 algos/hr",
+          "3rd place- 440 algos/hr",
+          "4th place- 410 algos/hr",
+          "nth place- 400-2n algos/hr (n>4)",
+          "(least payout is 250 algos/hr)",
+          'count for "the algo": 1hr 30min required'
+        ]
+      },
+      {
+        title: "week 4 battle:",
+        lines: [
+          "1st place- 600 algos/hr",
+          "2nd place- 560 algos/hr",
+          "3rd place- 530 algos/hr",
+          "4th place- 500 algos/hr",
+          "nth place- 480-2n algos/hr (n>4)",
+          "(least payout is 300 algos/hr)",
+          'count for "the algo": 2hrs required'
+        ]
+      },
+      {
+        title: "week 5 battle:",
+        color: color(255, 215, 0),
+        lines: [
+          "1st place- 1000 algos/hr",
+          "2nd place- 900 algos/hr",
+          "3rd place- 800 algos/hr",
+          "4th place- 750 algos/hr",
+          "5th place- 700 algos/hr",
+          "6th place- 675 algos/hr",
+          "7th place- 650 algos/hr",
+          "8th place- 630 algos/hr",
+          "9th place- 610 algos/hr",
+          "10th place- 600 algos/hr",
+          "nth place- 600-2n algos/hr",
+          "(least payout is 450 algos/hr)",
+          'count for "the algo": 3hrs required'
+        ]
+      },
+      {
+        title: "qualify for 'the algo':",
+        lines: [
+          "(must complete for all 5 weeks)",
+          "choose one:",
+          "- $20 grant for 3d printing/parts",
+          "- Raspberry Pi Zero 2w",
+          "- 3000 algos"
+        ]
+      }
+    ];
+
+    if (mobile) {
+      for (const prize of prizes) {
+        y = drawPrize(
+          prize.title,
+          prize.lines,
+          sidePadding,
+          y,
+          contentWidth,
+          true,
+          prize.color || 255
+        );
+      }
+    } else {
+      const gap = 40;
+      const columnWidth = (contentWidth - gap) / 2;
+      const leftX = sidePadding;
+      const rightX = sidePadding + columnWidth + gap;
+
+      for (let i = 0; i < prizes.length; i += 2) {
+        const rowY = y;
+        const leftEnd = drawPrize(
+          prizes[i].title,
+          prizes[i].lines,
+          leftX,
+          rowY,
+          columnWidth,
+          false,
+          prizes[i].color || 255
+        );
+
+        const rightEnd = prizes[i + 1]
+          ? drawPrize(
+              prizes[i + 1].title,
+              prizes[i + 1].lines,
+              rightX,
+              rowY,
+              columnWidth,
+              false,
+              prizes[i + 1].color || 255
+            )
+          : rowY;
+
+        y = Math.max(leftEnd, rightEnd) + 20;
+      }
+    }
+
+    y += 20;
+    textAlign(CENTER, CENTER);
+    textSize(mobile ? 14 : 16);
+    fill(255);
+    text("more description coming soon.", width / 2, y);
+
+    const neededHeight = Math.ceil(y + 50);
+    if (height !== neededHeight) {
+      resizeCanvas(width, neededHeight, true);
+    }
+  }
+
+  function windowResized() {
+    resizeCanvas(windowWidth, height, true);
+  }
+</script>
+
+</body>
+</html>
+
